@@ -1,0 +1,37 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+library(data.table)
+
+data2 <- read.csv("C:\\Users\\sskhirtladze\\Desktop\\My Skills\\Data science\\Course_5_Reproductible research\\Exam1\\repdata_data_activity\\activity.CSV", header=TRUE, stringsAsFactors=FALSE)
+data3<-na.omit(data2)
+data3$date<-as.factor(as.character(data3$date))
+
+total_steps <- data3 %>%
+group_by(date) %>%
+summarise(daily_steps = sum(steps, na.rm = TRUE))
+
+ggplot(total_steps, aes(daily_steps)) + geom_histogram(binwidth = 2000) + xlab("Total number of steps taken each day") + ylab("Frequency")
+
+interval_steps <- data2 %>% 
+  group_by(interval) %>%
+  summarise(steps = mean(steps, na.rm =TRUE))
+
+ggplot(data=interval_steps, aes(x=interval, y=steps)) + geom_line() + xlab("5-minute intervals") +
+ylab("Average number of steps taken")
+
+
+meanSteps <- summarize(data3, meanSteps = round(mean(steps, na.rm = T)))
+
+imputed_total_steps <- data3 %>% 
+  group_by(date) %>%
+  summarise(daily_steps = sum(steps))
+
+ggplot(imputed_total_steps, aes(daily_steps)) + geom_histogram(binwidth = 2000) + xlab("Total number of steps taken each day") +   ylab("Frequency")
+
+day_of_week <- data3 %>% 
+  mutate(weekday_or_weekend = case_when(wday(date) %in% 2:6 ~ "Weekday",wday(date) %in% c(1,7) ~ "Weekend")) %>% select(-date) %>%
+ group_by(interval, weekday_or_weekend) %>% 
+ summarise(steps = mean(steps))
+
+ ggplot(day_of_week, aes(interval, steps)) + geom_line() +facet_wrap(~weekday_or_weekend, nrow = 2) +xlab("5-Minute intervals") +  ylab("Average number of steps")
