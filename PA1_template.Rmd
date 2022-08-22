@@ -1,25 +1,65 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research: Peer Assessment"
+output: html_document
+date: '2022-08-21'
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(collapse = T, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+```
 
-## Loading and preprocessing the data
+## Contents
+
+The scope of project is to analyze  personal movement using activity monitoring devices and draw conclusions and insights based on findings. 
+
+Data used in research
+
+Dataset: Activity monitoring data [52K]
+steps: Number of steps taking in a 5-minute interval (missing values are coded as NA)
+date: The date on which the measurement was taken in YYYY-MM-DD format
+interval: Identifier for the 5-minute interval in which measurement was taken
 
 
+```{r}
+library(dplyr)
+library(ggplot2)
+library(data.table)
 
-## What is mean total number of steps taken per day?
+data2 <- read.csv("C:\\Users\\sskhirtladze\\Desktop\\My Skills\\Data science\\Course_5_Reproductible research\\Exam1\\repdata_data_activity\\activity.CSV", header=TRUE, stringsAsFactors=FALSE)
+data3<-na.omit(data2)
+data3$date<-as.factor(as.character(data3$date))
+
+total_steps <- data3 %>%
+group_by(date) %>%
+summarise(daily_steps = sum(steps, na.rm = TRUE))
+
+ggplot(total_steps, aes(daily_steps)) + geom_histogram(binwidth = 2000) + xlab("Total number of steps taken each day") + ylab("Frequency")
+
+interval_steps <- data2 %>% 
+  group_by(interval) %>%
+  summarise(steps = mean(steps, na.rm =TRUE))
+
+ggplot(data=interval_steps, aes(x=interval, y=steps)) + geom_line() + xlab("5-minute intervals") +
+ylab("Average number of steps taken")
 
 
+meanSteps <- summarize(data3, meanSteps = round(mean(steps, na.rm = T)))
 
-## What is the average daily activity pattern?
+imputed_total_steps <- data3 %>% 
+  group_by(date) %>%
+  summarise(daily_steps = sum(steps))
 
+ggplot(imputed_total_steps, aes(daily_steps)) + geom_histogram(binwidth = 2000) + xlab("Total number of steps taken each day") +   ylab("Frequency")
 
+day_of_week <- data3 %>% 
+  mutate(weekday_or_weekend = case_when(wday(date) %in% 2:6 ~ "Weekday",wday(date) %in% c(1,7) ~ "Weekend")) %>% select(-date) %>%
+ group_by(interval, weekday_or_weekend) %>% 
+ summarise(steps = mean(steps))
 
-## Imputing missing values
+ ggplot(day_of_week, aes(interval, steps)) + geom_line() +facet_wrap(~weekday_or_weekend, nrow = 2) +xlab("5-Minute intervals") +  ylab("Average number of steps")
 
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-
-## Are there differences in activity patterns between weekdays and weekends?
